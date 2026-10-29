@@ -40,6 +40,7 @@ struct TranscriptionSettingsView: View {
         Form {
             transcriptionSection
             liveTranscriptionSection
+            LiveMinutesSettingsSection(settings: settings)
         }
         .formStyle(.grouped)
     }

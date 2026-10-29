@@ -57,6 +57,14 @@ enum A11yID {
     static let liveTranscriptionSection = "liveTranscriptionSection"
     static let liveCaptionsOverlayToggle = "liveCaptionsOverlayToggle"
     static let liveCaptionsSizePicker = "liveCaptionsSizePicker"
+    static let liveMinutesSection = "liveMinutesSection"
+    static let liveMinutesEnabledToggle = "liveMinutesEnabledToggle"
+    static let liveMinutesAutoOpenToggle = "liveMinutesAutoOpenToggle"
+    static let liveMinutesIntervalStepper = "liveMinutesIntervalStepper"
+    static let liveMinutesSharingToggle = "liveMinutesSharingToggle"
+    static let liveMinutesEndpointField = "liveMinutesEndpointField"
+    static let liveMinutesModelField = "liveMinutesModelField"
+    static let liveMinutesRemoteWarning = "liveMinutesRemoteWarning"
     static let channelIndicatorSection = "channelIndicatorSection"
     static let silentTrackWatchdogToggle = "silentTrackWatchdogToggle"
     static let experimentalTuningDisclosure = "experimentalTuningDisclosure"
@@ -131,4 +139,15 @@ enum A11yID {
 
     // Live captions overlay.
     static let liveCaptionBackend = "liveCaptionBackend"
+
+    // Live Minutes window.
+    static let liveMinutesTranscriptToggle = "liveMinutesTranscriptToggle"
+    static let liveMinutesTranscript = "liveMinutesTranscript"
+    static let liveMinutesSummary = "liveMinutesSummary"
+    static let liveMinutesDraftBanner = "liveMinutesDraftBanner"
+    static let liveMinutesLastUpdated = "liveMinutesLastUpdated"
+    static let liveMinutesUpdatingIndicator = "liveMinutesUpdatingIndicator"
+    static let liveMinutesFailureNote = "liveMinutesFailureNote"
+    static let liveMinutesCopyDraft = "liveMinutesCopyDraft"
+    static let liveMinutesSaveDraft = "liveMinutesSaveDraft"
 }

@@ -252,6 +252,51 @@ final class AppSettings {
         didSet { defaults.set(liveCaptionsSize.rawValue, forKey: "liveCaptionsSize") }
     }
 
+    // MARK: - Live Minutes
+
+    /// Live Minutes window with a rolling summary during recording. Needs live
+    /// transcription as its source. Default off: it sends transcript text to an
+    /// LLM endpoint while the meeting runs.
+    var liveMinutesEnabled: Bool {
+        didSet { defaults.set(liveMinutesEnabled, forKey: "liveMinutesEnabled") }
+    }
+
+    /// Open the Live Minutes window when a recording starts.
+    var liveMinutesAutoOpen: Bool {
+        didSet { defaults.set(liveMinutesAutoOpen, forKey: "liveMinutesAutoOpen") }
+    }
+
+    /// Seconds between summary updates. Clamped to [30, 300] on write.
+    var liveMinutesIntervalSeconds: Double {
+        didSet {
+            // Conditional reassignment to avoid infinite didSet recursion under @Observable.
+            if liveMinutesIntervalSeconds < 30 {
+                liveMinutesIntervalSeconds = 30
+            } else if liveMinutesIntervalSeconds > 300 {
+                liveMinutesIntervalSeconds = 300
+            }
+            defaults.set(liveMinutesIntervalSeconds, forKey: "liveMinutesIntervalSeconds")
+        }
+    }
+
+    /// Whether other participants can see the Live Minutes window in a screen
+    /// share (`NSWindow.sharingType`). Default off: the window is hidden from
+    /// capture.
+    var liveMinutesVisibleInScreenSharing: Bool {
+        didSet { defaults.set(liveMinutesVisibleInScreenSharing, forKey: "liveMinutesVisibleInScreenSharing") }
+    }
+
+    /// OpenAI-compatible endpoint for the rolling summary. Empty means the
+    /// protocol provider's `openAIEndpoint` (see `liveMinutesResolvedEndpoint`).
+    var liveMinutesEndpoint: String {
+        didSet { defaults.set(liveMinutesEndpoint, forKey: "liveMinutesEndpoint") }
+    }
+
+    /// Model for the rolling summary. Empty means `openAIModel`.
+    var liveMinutesModel: String {
+        didSet { defaults.set(liveMinutesModel, forKey: "liveMinutesModel") }
+    }
+
     /// Seconds of continuous asymmetric silence before the indicator + notification
     /// fire. Clamped to [30, 300] on write — short enough to surface a dead channel
     /// inside a meeting, long enough not to trigger on normal speaking pauses.
@@ -645,6 +690,12 @@ final class AppSettings {
         liveCaptionsSize = defaults.string(forKey: "liveCaptionsSize")
             .flatMap(LiveCaptionsSize.init(rawValue:)) ?? .medium
         asymmetricSilenceWarningSeconds = max(30, min(300, defaults.object(forKey: "asymmetricSilenceWarningSeconds") as? Double ?? 90))
+        liveMinutesEnabled = defaults.object(forKey: "liveMinutesEnabled") as? Bool ?? false
+        liveMinutesAutoOpen = defaults.object(forKey: "liveMinutesAutoOpen") as? Bool ?? true
+        liveMinutesIntervalSeconds = max(30, min(300, defaults.object(forKey: "liveMinutesIntervalSeconds") as? Double ?? 90))
+        liveMinutesVisibleInScreenSharing = defaults.object(forKey: "liveMinutesVisibleInScreenSharing") as? Bool ?? false
+        liveMinutesEndpoint = defaults.string(forKey: "liveMinutesEndpoint") ?? ""
+        liveMinutesModel = defaults.string(forKey: "liveMinutesModel") ?? ""
 
         transcriptionEngine = (defaults.string(forKey: "transcriptionEngine")
             .flatMap(TranscriptionEngineSetting.init(rawValue:))) ?? .whisperKit

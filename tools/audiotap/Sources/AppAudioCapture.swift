@@ -415,7 +415,11 @@ public class AppAudioCapture: @unchecked Sendable {
             &newProcID, newAggregateID, writeQueue,
         ) { [weak self, session] _, inInputData, inInputTime, _, _ in
             guard let self, self.isRunning else { return }
-            let abl = inInputData.pointee
+            let buffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: inInputData))
+            // The aggregate can list more than the tap (a sub-device with
+            // input streams); see `TapBufferSelection`.
+            guard let tapIndex = TapBufferSelection.tapBufferIndex(bufferCount: buffers.count) else { return }
+            let tapBuffer = buffers[tapIndex]
 
             // Log format on first callback
             if !self.didLogFormat {
@@ -433,7 +437,7 @@ public class AppAudioCapture: @unchecked Sendable {
                 if self.appFirstFrameTime == 0 {
                     self.appFirstFrameTime = mach_absolute_time()
                 }
-                self.actualChannels = Int(abl.mBuffers.mNumberChannels)
+                self.actualChannels = Int(tapBuffer.mNumberChannels)
 
                 // Device is running — query the measured actual rate
                 let measuredRate = Self.queryActualSampleRate(deviceID: session.aggregateID)
@@ -445,9 +449,10 @@ public class AppAudioCapture: @unchecked Sendable {
                 }
 
                 let ch = max(self.actualChannels, 1)
-                let frames = Int(abl.mBuffers.mDataByteSize) / (MemoryLayout<Float>.size * ch)
+                let frames = Int(tapBuffer.mDataByteSize) / (MemoryLayout<Float>.size * ch)
+                let layout = buffers.map { "\($0.mNumberChannels)ch" }.joined(separator: ",")
                 logger.info(
-                    "Audio format: \(self.actualSampleRate) Hz, \(self.actualChannels)ch, \(abl.mNumberBuffers) buffers, \(frames) frames/buffer",
+                    "Audio format: \(self.actualSampleRate) Hz, \(self.actualChannels)ch, \(buffers.count) buffers, \(frames) frames/buffer, buffers=[\(layout, privacy: .public)] tap=\(tapIndex)",
                 )
             }
 
@@ -459,8 +464,8 @@ public class AppAudioCapture: @unchecked Sendable {
             // resampled 16 kHz mono buffer from inside writeCapturedBuffer, so
             // the app doesn't resample a second time. RMS/level still read the
             // raw buffer below.
-            guard let data = abl.mBuffers.mData else { return }
-            let byteCount = Int(abl.mBuffers.mDataByteSize)
+            guard let data = tapBuffer.mData else { return }
+            let byteCount = Int(tapBuffer.mDataByteSize)
             let hostTicks = Self.hostTicks(from: inInputTime)
             self.writeCapturedBuffer(fd: fd, data: data, byteCount: byteCount, hostTicks: hostTicks)
 

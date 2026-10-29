@@ -195,6 +195,15 @@ State writes to `AppPaths.dataDir`; IPC + queue snapshots to `ipcDir`.
 | `LiveTranscriptionCoordinator.swift` | `@Observable` coordinator: builds + arms `LiveTranscriptionController`, feeds `LiveCaptionsState` |
 | `LiveCaptionPipeline.swift` | Per-channel live captioning strategy protocol (English EOU streaming \| Nemotron streaming \| WhisperKit/Parakeet re-transcribe) |
 | `LiveCaptionsGate.swift` | Pure decision logic for live captions routing: master toggle + explicit engine language (`en` → English EOU streaming, other → Nemotron streaming, auto-detect → re-transcribe or none) — shared by `AppState`, coordinator, and controller. Overlay visibility is a separate UI AND (`overlayVisible`); it is not a strategy input |
+| `LiveMinutesEngine.swift` | Actor behind Live Minutes: running JSON summary, timer/count-triggered updates with a bounded context, one request at a time, cancellation, parse-failure fallback; talks to an injected `LiveMinutesLLMClient` |
+| `LiveMinutesSummary.swift` | Summary value type (topics, decisions, tasks, open questions), tolerant JSON parsing, sanitizing caps, Markdown rendering |
+| `LiveMinutesPrompt.swift` | Built-in live minutes prompt, `live_minutes_prompt.md` override, user-message construction |
+| `LiveMinutesCoordinator.swift` | Subscribes to `LiveCaptionsState.onFinalized`, owns one engine per meeting, feeds `LiveMinutesState`, produces the final draft |
+| `LiveMinutesState.swift` | Memory-only `@Observable` state of the Live Minutes window |
+| `LiveMinutesGate.swift` | Pure decisions: when it runs, auto-open, `NSWindow.sharingType` mapping |
+| `LiveMinutesView.swift` / `LiveMinutesWindowController.swift` | SwiftUI content and the `NSWindow` that hosts it; Copy/Save draft |
+| `AppSettings+LiveMinutes.swift` | Endpoint/model/key resolution (empty fields use the protocol provider) and the localhost check |
+| `Settings/LiveMinutesSettingsSection.swift` | Settings, Transcribe: Live Minutes section |
 | `EouStreamingCaptionSession.swift` | English low-latency streaming caption session via FluidAudio Parakeet EOU, backed by `UtteranceRingBuffer` |
 | `NemotronStreamingCaptionSession.swift` | Multilingual (non-English) low-latency streaming caption session via FluidAudio Nemotron |
 | `NemotronAsrManager.swift` | Production seam wrapping FluidAudio's Nemotron model + Silero VAD for `NemotronStreamingCaptionSession` |

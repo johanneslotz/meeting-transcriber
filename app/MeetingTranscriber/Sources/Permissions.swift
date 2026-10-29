@@ -53,8 +53,7 @@ enum Permissions {
     /// does not burn the one-shot flag: if the grant is revoked mid-session, the
     /// next watch start still asks.
     static func ensureScreenRecordingAccess() {
-        guard !CGPreflightScreenCaptureAccess() else { return }
-        guard claimFirst(screenRecordingPromptLock) else { return }
+        guard !CGPreflightScreenCaptureAccess(), claimFirst(screenRecordingPromptLock) else { return }
 
         if !CGRequestScreenCaptureAccess() {
             logger.warning("permission_denied resource=screen_recording status=user_denied_prompt")

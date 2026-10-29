@@ -130,9 +130,8 @@ enum EchoBleedDetector {
         let overlap = min(app.count, mic.count)
         let framesPerWindow = Int(windowSeconds / frameSeconds)
         let samplesPerFrame = Int(Double(sampleRate) * frameSeconds)
-        guard samplesPerFrame > 0, overlap >= samplesPerFrame * framesPerWindow else { return nil }
-
-        guard dbfs(app, count: overlap) > silenceFloorDBFS,
+        guard samplesPerFrame > 0, overlap >= samplesPerFrame * framesPerWindow,
+              dbfs(app, count: overlap) > silenceFloorDBFS,
               dbfs(mic, count: overlap) > silenceFloorDBFS
         else { return nil }
 

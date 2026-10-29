@@ -19,8 +19,7 @@ final class SilentTrackWatchdogPolicyTests: XCTestCase {
     private func cycle(
         _ policy: inout Policy, now: TimeInterval, zeroRun: TimeInterval, running: Bool = true,
     ) -> Policy.Decision? {
-        guard case .check = policy.tick(ages(energy: zeroRun), now: now) else { return nil }
-        guard let result = policy.conclude(anyRunningOutput: running) else { return nil }
+        guard case .check = policy.tick(ages(energy: zeroRun), now: now), let result = policy.conclude(anyRunningOutput: running) else { return nil }
         if case .rebuild = result.decision {
             XCTAssertNil(policy.beginRebuild(ages(energy: zeroRun), sameTap: true, captureRunning: true))
             policy.rebuildStarted(now: now)

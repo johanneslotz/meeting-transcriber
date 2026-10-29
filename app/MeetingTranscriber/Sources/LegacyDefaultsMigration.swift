@@ -85,9 +85,9 @@ enum LegacyDefaultsMigration {
     /// Tests pass it explicitly; outside an app bundle there is no identifier
     /// and nothing to migrate.
     static func run(into defaults: UserDefaults, legacyDomain: String? = nil) {
-        guard !defaults.bool(forKey: markerKey) else { return }
-        guard let legacyDomain = legacyDomain
-            ?? Bundle.main.bundleIdentifier.flatMap(self.legacyDomain(for:))
+        guard !defaults.bool(forKey: markerKey),
+              let legacyDomain = legacyDomain
+              ?? Bundle.main.bundleIdentifier.flatMap(self.legacyDomain(for:))
         else { return }
 
         let legacy = mergedLegacy(

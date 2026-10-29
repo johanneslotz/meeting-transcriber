@@ -111,11 +111,8 @@ class MeetingDetector: MeetingDetecting {
     /// Match a window dict against a meeting pattern. Returns the title if matched.
     private func matchWindow(_ window: [String: Any], pattern: AppMeetingPattern) -> String? {
         guard let owner = window["kCGWindowOwnerName"] as? String,
-              pattern.ownerNames.contains(owner) else {
-            return nil
-        }
-
-        guard let title = window["kCGWindowName"] as? String, !title.isEmpty else {
+              pattern.ownerNames.contains(owner),
+              let title = window["kCGWindowName"] as? String, !title.isEmpty else {
             return nil
         }
 

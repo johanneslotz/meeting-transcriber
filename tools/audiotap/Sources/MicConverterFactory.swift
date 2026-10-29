@@ -24,8 +24,8 @@ public enum MicConverterFactory {
         // covers resampling AND downmixing a multi-channel input device. Since
         // the tap matches the node's real channel count (issue #379), a 2ch
         // device is captured as 2ch and folded to the mono WAV here.
-        guard tapFormat.sampleRate != fileSampleRate || tapFormat.channelCount != 1 else { return nil }
-        guard let outputFormat = AVAudioFormat(standardFormatWithSampleRate: fileSampleRate, channels: 1),
+        guard tapFormat.sampleRate != fileSampleRate || tapFormat.channelCount != 1,
+              let outputFormat = AVAudioFormat(standardFormatWithSampleRate: fileSampleRate, channels: 1),
               let converter = AVAudioConverter(from: tapFormat, to: outputFormat)
         else { return nil }
 

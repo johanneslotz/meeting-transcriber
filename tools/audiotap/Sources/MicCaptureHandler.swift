@@ -523,8 +523,7 @@ extension MicCaptureHandler {
     /// only when `debugLogging` is on. The drain itself runs unconditionally
     /// so the reporter's accumulators stay bounded for long sessions.
     func maybeReportDebugRMS() {
-        guard let report = debugRMS.tick() else { return }
-        guard debugLogging else { return }
+        guard let report = debugRMS.tick(), debugLogging else { return }
         let dBStr = String(format: "%.1f", report.dBFS)
         logger.info(
             "[debug] Mic RMS (5s): \(dBStr, privacy: .public) dBFS, samples=\(report.samples, privacy: .public)",

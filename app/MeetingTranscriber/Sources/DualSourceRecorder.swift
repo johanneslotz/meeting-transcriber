@@ -256,8 +256,8 @@ class DualSourceRecorder: RecordingProvider {
             // twice. Nothing else counts: see `RecordingFileSuffix.inProgress`
             // for why a lone mic track must never be read as an interruption.
             guard let stem = RecordingFileSuffix.stripAppRaw(from: name)
-                ?? RecordingFileSuffix.stripInProgress(from: name) else { continue }
-            guard !mixStems.contains(stem), seen.insert(stem).inserted else { continue }
+                ?? RecordingFileSuffix.stripInProgress(from: name),
+                !mixStems.contains(stem), seen.insert(stem).inserted else { continue }
             stems.append(stem)
         }
         return stems
@@ -553,9 +553,7 @@ class DualSourceRecorder: RecordingProvider {
             return deviceRate
         }
         let appDuration = micDuration + micDelay
-        guard appDuration > 3.0 else { return deviceRate }
-
-        guard let inferred = SampleRateQuery.inferRateFromDuration(
+        guard appDuration > 3.0, let inferred = SampleRateQuery.inferRateFromDuration(
             rawBytes: appRawBytes,
             bytesPerSample: MemoryLayout<Float>.size,
             channels: max(appChannels, 1),

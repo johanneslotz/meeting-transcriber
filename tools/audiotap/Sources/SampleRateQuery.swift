@@ -185,8 +185,7 @@ public enum SampleRateQuery {
             return nil
         }
         let snapped = snapToStandardRate(Int(measured.rounded()))
-        guard snapped != current, snapped > 0 else { return nil }
-        guard abs(measured - Double(snapped)) <= Double(snapped) * rateTolerance else { return nil }
+        guard snapped != current, snapped > 0, abs(measured - Double(snapped)) <= Double(snapped) * rateTolerance else { return nil }
         return snapped
     }
 

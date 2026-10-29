@@ -17,9 +17,8 @@ final class LiveMinutesEngineTests: XCTestCase {
             configuration: configuration,
             systemPrompt: { "SYSTEM" },
             now: { clock.now },
-            sleep: sleep,
-            onEvent: { await events.append($0) },
-        )
+            sleep: sleep
+        )            { await events.append($0) }
     }
 
     private actor EventLog {
@@ -258,7 +257,7 @@ final class LiveMinutesEngineTests: XCTestCase {
         configuration.utteranceTrigger = 100
         let ticks = TickSource()
         let llm = FakeLiveMinutesLLM()
-        let engine = makeEngine(client: llm, configuration: configuration, sleep: { await ticks.wait(interval: $0) })
+        let engine = makeEngine(client: llm, configuration: configuration) { await ticks.wait(interval: $0) }
         await engine.ingest(LiveMinutesTestData.utterance("one"))
         await engine.start()
 

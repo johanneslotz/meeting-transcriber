@@ -41,7 +41,7 @@ extension FluidDiarizer {
         // Mirrors the pattern in `DiarizerManager.extractSpeakerEmbedding`.
         guard
             let segShape = models.segmentationModel.modelDescription
-            .outputDescriptionsByName["segments"]?.multiArrayConstraint?.shape,
+                .outputDescriptionsByName["segments"]?.multiArrayConstraint?.shape,
             segShape.count >= 2
         else {
             throw DiarizationError.notAvailable

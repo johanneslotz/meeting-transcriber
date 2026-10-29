@@ -152,8 +152,7 @@ actor StreamingTranscriber: LiveCaptionPipeline {
 
     private func maybeEmitPartial() async {
         let now = Date()
-        guard now.timeIntervalSince(lastPartialAt) >= Self.partialIntervalSeconds else { return }
-        guard !speechSamples.isEmpty else { return }
+        guard now.timeIntervalSince(lastPartialAt) >= Self.partialIntervalSeconds, !speechSamples.isEmpty else { return }
         lastPartialAt = now
         let snapshot = speechSamples
         do {

@@ -38,7 +38,7 @@ struct LiveMinutesSummary: Codable, Equatable {
     var tasks: [ActionItem]
     var openQuestions: [String]
 
-    static let empty = LiveMinutesSummary(topics: [], decisions: [], tasks: [], openQuestions: [])
+    static let empty = Self(topics: [], decisions: [], tasks: [], openQuestions: [])
 
     enum CodingKeys: String, CodingKey {
         case topics
@@ -88,13 +88,13 @@ struct LiveMinutesSummary: Codable, Equatable {
     /// Parse an LLM reply into a summary. Accepts a bare JSON object or one
     /// wrapped in a code fence or a sentence of prose, by taking the outermost
     /// `{ ... }`. The result is sanitized with `limits`.
-    static func parse(_ reply: String, limits: Limits = .init()) throws -> LiveMinutesSummary {
+    static func parse(_ reply: String, limits: Limits = .init()) throws -> Self {
         guard let start = reply.firstIndex(of: "{"), let end = reply.lastIndex(of: "}"), start < end else {
             throw ParseError.noJSONObject
         }
         let data = Data(reply[start ... end].utf8)
         do {
-            return try JSONDecoder().decode(LiveMinutesSummary.self, from: data).sanitized(limits: limits)
+            return try JSONDecoder().decode(Self.self, from: data).sanitized(limits: limits)
         } catch {
             throw ParseError.invalidStructure
         }
@@ -111,7 +111,7 @@ struct LiveMinutesSummary: Codable, Equatable {
 
     /// Trim, drop empties, de-duplicate case-insensitively, cut over-long items
     /// and keep the newest `maxItemsPerSection` entries of each section.
-    func sanitized(limits: Limits = .init()) -> LiveMinutesSummary {
+    func sanitized(limits: Limits = .init()) -> Self {
         func clean(_ items: [String]) -> [String] {
             var seen = Set<String>()
             let kept = items.compactMap { raw -> String? in
@@ -131,7 +131,7 @@ struct LiveMinutesSummary: Codable, Equatable {
                   seenTasks.insert(text.lowercased()).inserted else { return nil }
             return ActionItem(task: text, owner: field(item.owner), due: field(item.due))
         }
-        return LiveMinutesSummary(
+        return Self(
             topics: clean(topics),
             decisions: clean(decisions),
             tasks: Array(cleanTasks.suffix(limits.maxItemsPerSection)),

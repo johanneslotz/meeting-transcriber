@@ -64,8 +64,7 @@
         }
 
         static func click(atAXPoint axPoint: CGPoint, in window: NSWindow) -> Bool {
-            guard let app = NSApp, let primary = NSScreen.screens.first else { return false }
-            guard let windowPoint = windowPoint(
+            guard let app = NSApp, let primary = NSScreen.screens.first, let windowPoint = windowPoint(
                 forAXPoint: axPoint, in: window, primaryScreenHeight: primary.frame.height,
             ) else { return false }
             // A synthetic click on an inactive app is delivered but not acted on:

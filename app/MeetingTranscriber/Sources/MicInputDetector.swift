@@ -214,8 +214,7 @@ class MicInputDetector: MeetingDetecting {
     /// conference daemon, Electron helper bundles, …). App-generated metadata
     /// only, logged `.public` so a diagnostic export names the actual bundle.
     private func logUnmatchedRunningInput(bundleID: String) {
-        guard !bundleID.isEmpty, bundleID != Bundle.main.bundleIdentifier else { return }
-        guard loggedMissBundles.insert(bundleID).inserted else { return }
+        guard !bundleID.isEmpty, bundleID != Bundle.main.bundleIdentifier, loggedMissBundles.insert(bundleID).inserted else { return }
         logger.info("Process with bundle \(bundleID, privacy: .public) is capturing mic input but matches no watched call app.")
     }
 

@@ -475,11 +475,7 @@ final class WhisperKitEngine: TranscribingEngine, StreamingTranscribingEngine {
     // `nil`, which leaves `DecodingOptions` in its exact no-prompt configuration
     // instead of retaining stale cached terms.
     private func vocabularyPromptTokens(for decodingClient: any WhisperDecodingClient) -> [Int]? { // swiftlint:disable:this discouraged_optional_collection
-        guard vocabularyPromptEnabled else {
-            vocabularyPromptTokenCount = 0
-            return nil
-        }
-        guard let vocabularyURL = VocabularyFileAccess.resolve(
+        guard vocabularyPromptEnabled, let vocabularyURL = VocabularyFileAccess.resolve(
             path: customVocabularyPath, bookmark: customVocabularyBookmark,
         ) else {
             vocabularyPromptTokenCount = 0

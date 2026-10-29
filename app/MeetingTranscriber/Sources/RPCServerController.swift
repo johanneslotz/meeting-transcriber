@@ -87,8 +87,7 @@
             // `self.server`, dropping the last strong ref to the live instance #1
             // while instance #2 fails to bind the already-held port. The toggle-off
             // path that stops + nils `server` re-opens this gate as intended.
-            guard server == nil else { return }
-            guard let server = makeServer?() else { return }
+            guard server == nil, let server = makeServer?() else { return }
             server.start()
             self.server = server
         }

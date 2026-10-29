@@ -123,10 +123,7 @@ enum PersistentDiagnosticLog {
         ownPid: Int32,
     ) -> [Int32] {
         processTable.compactMap { entry in
-            guard entry.ppid == 1 else { return nil }
-            guard entry.pid != ownPid else { return nil }
-            guard entry.command.contains(logExecutablePath) else { return nil }
-            guard entry.command.contains(streamPredicate) else { return nil }
+            guard entry.ppid == 1, entry.pid != ownPid, entry.command.contains(logExecutablePath), entry.command.contains(streamPredicate) else { return nil }
             return entry.pid
         }
     }
@@ -219,8 +216,8 @@ enum PersistentDiagnosticLog {
             return
         }
         for url in entries {
-            guard isOurLogFile(url.lastPathComponent) else { continue }
-            guard let attrs = try? fm.attributesOfItem(atPath: url.path),
+            guard isOurLogFile(url.lastPathComponent),
+                  let attrs = try? fm.attributesOfItem(atPath: url.path),
                   let mtime = attrs[.modificationDate] as? Date,
                   isExpired(modifiedAt: mtime, retentionDays: retentionDays)
             else { continue }

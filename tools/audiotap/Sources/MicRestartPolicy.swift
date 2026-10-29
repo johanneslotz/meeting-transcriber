@@ -23,8 +23,7 @@ public enum MicRestartPolicy {
         selectedDeviceUID: String?,
         isSelectedDeviceAvailable: Bool,
     ) -> MicRestartAction {
-        guard isRecording else { return .skip }
-        guard !isRestarting else { return .skip }
+        guard isRecording, !isRestarting else { return .skip }
 
         if let uid = selectedDeviceUID, isSelectedDeviceAvailable {
             return .restart(deviceUID: uid)

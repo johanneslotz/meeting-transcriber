@@ -51,8 +51,7 @@ extension MicCaptureHandler {
             selectedDeviceUID: selectedDeviceUID,
             isSelectedDeviceAvailable: isDeviceAvailable,
         )
-        guard case let .restart(deviceUID) = action else { return }
-        guard case let .launchAttempt(generation) = arbiter.withLock({ $0.handle(.deviceChanged) })
+        guard case let .restart(deviceUID) = action, case let .launchAttempt(generation) = arbiter.withLock({ $0.handle(.deviceChanged) })
         else { return }
         if stalled { noteRevival() }
         // A stalled capture's engine was released when it stalled.
@@ -268,8 +267,7 @@ extension MicCaptureHandler {
             restartRetryCount += 1
             let attempt = restartRetryCount
             scheduleOnMain(delay) { [weak self] in
-                guard let self else { return }
-                guard case let .launchAttempt(generation) = self.arbiter.withLock({ $0.handle(.retryDue) })
+                guard let self, case let .launchAttempt(generation) = self.arbiter.withLock({ $0.handle(.retryDue) })
                 else { return }
                 logger.info("Mic: restart retry \(attempt)")
                 // Re-resolve the target now rather than reusing the one captured

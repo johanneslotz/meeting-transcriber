@@ -455,10 +455,7 @@ class PowerAssertionDetector: MeetingDetecting {
             // key, so a blank one would ask "A meeting is active in ." and store
             // an unremovable blank row. The allowlist used to make this
             // unreachable.
-            guard !processName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                return false
-            }
-            guard !claimedProcesses.contains(processName) else { return false }
+            guard !processName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !claimedProcesses.contains(processName) else { return false }
         } else {
             guard pattern.processNames.contains(processName) else { return false }
         }
@@ -508,8 +505,7 @@ class PowerAssertionDetector: MeetingDetecting {
 
         var result: [Int32: [[String: Any]]] = [:]
         for i in 0 ..< count {
-            guard let valPtr = values[i] else { continue }
-            guard let keyPtr = keys[i] else { continue }
+            guard let valPtr = values[i], let keyPtr = keys[i] else { continue }
             let keyObj = Unmanaged<AnyObject>.fromOpaque(keyPtr).takeUnretainedValue()
             let pid = keyObj as? Int32 ?? 0
             let valObj = Unmanaged<AnyObject>.fromOpaque(valPtr).takeUnretainedValue()

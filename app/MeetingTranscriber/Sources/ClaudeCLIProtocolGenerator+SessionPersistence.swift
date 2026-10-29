@@ -199,8 +199,7 @@
         /// instance, therefore keeps its folders instead of going with them.
         static func removeIfOnlyEmptyFolders(_ folder: URL) {
             let own = try? folder.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
-            guard own?.isDirectory == true, own?.isSymbolicLink != true else { return }
-            guard let enumerator = FileManager.default.enumerator(
+            guard own?.isDirectory == true, own?.isSymbolicLink != true, let enumerator = FileManager.default.enumerator(
                 at: folder, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey],
             ) else { return }
             var folders: [URL] = []

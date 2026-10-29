@@ -475,9 +475,7 @@ extension PipelineQueue {
                 // aren't recoverable from the dir scan alone.
                 guard let mixURL = group.mix else { return false }
                 let stdPath = mixURL.standardizedFileURL.path
-                guard !trackedPaths.contains(stdPath) else { return false }
-                guard !runningPaths.contains(stdPath) else { return false }
-                guard !processedPaths.contains(stdPath) else { return false }
+                guard !trackedPaths.contains(stdPath), !runningPaths.contains(stdPath), !processedPaths.contains(stdPath) else { return false }
                 let attrs = try? fm.attributesOfItem(atPath: mixURL.path)
                 if let created = attrs?[.creationDate] as? Date,
                    now.timeIntervalSince(created) > maxAge {

@@ -82,8 +82,7 @@ struct SampleRateDriftDetector {
         let claimedRate = Double(last.claimedRate)
         guard claimedRate > 0 else { return nil }
         let drift = abs(observedRate - claimedRate) / claimedRate
-        guard drift > Self.driftThreshold else { return nil }
-        guard now.timeIntervalSince(lastWarningAt) > Self.warnCooldownSeconds else { return nil }
+        guard drift > Self.driftThreshold, now.timeIntervalSince(lastWarningAt) > Self.warnCooldownSeconds else { return nil }
         lastWarningAt = now
         return Report(
             claimedRate: claimedRate,

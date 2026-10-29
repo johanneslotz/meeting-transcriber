@@ -61,9 +61,7 @@ class SpeakerMatcher {
         // concurrent inits parsing the same file is a TSan-hostile NSJSONReader
         // frame. saveDB writes JSONEncoder output, which always begins with '['.
         // Only the legacy dict format falls through to the parse + backup below.
-        guard data.first != UInt8(ascii: "[") else { return }
-
-        guard let json = try? JSONSerialization.jsonObject(with: data) else { return }
+        guard data.first != UInt8(ascii: "["), let json = try? JSONSerialization.jsonObject(with: data) else { return }
         // Old format is a dictionary, new format is an array
         if json is [String: Any] {
             let backup = dbPath.deletingLastPathComponent()

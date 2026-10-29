@@ -46,6 +46,10 @@ enum AppPaths {
     /// Custom protocol prompt file.
     static let customPromptFile = dataDir.appendingPathComponent("protocol_prompt.md")
 
+    /// Custom prompt for the rolling live summary (Live Minutes). Read-only for
+    /// the app: it is never written while a meeting runs.
+    static let customLiveMinutesPromptFile = dataDir.appendingPathComponent("live_minutes_prompt.md")
+
     /// Exists exactly while a run of this bundle is alive; see `LivenessMarker`.
     /// Named per bundle identifier because the dev and release builds share
     /// `dataDir`, and each must judge only its own previous run: one build's

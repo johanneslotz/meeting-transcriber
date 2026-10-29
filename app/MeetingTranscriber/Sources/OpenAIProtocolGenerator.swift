@@ -67,9 +67,16 @@ struct OpenAIProtocolGenerator: ProtocolGenerating {
             meetingStartTime: meetingStartTime,
         )
 
+        return try await complete(system: systemPrompt, user: transcript)
+    }
+
+    /// One chat completion with a system and a user message, returning the
+    /// reply text. Shared by protocol generation and the live minutes engine,
+    /// so both get the same streaming, deadline and `max_tokens` handling.
+    func complete(system: String, user: String) async throws -> String {
         let messages: [[String: Any]] = [
-            ["role": "system", "content": systemPrompt],
-            ["role": "user", "content": transcript],
+            ["role": "system", "content": system],
+            ["role": "user", "content": user],
         ]
 
         do {

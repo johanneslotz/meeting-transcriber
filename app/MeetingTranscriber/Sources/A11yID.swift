@@ -144,6 +144,13 @@ enum A11yID {
     static let liveMinutesTranscriptToggle = "liveMinutesTranscriptToggle"
     static let liveMinutesTranscript = "liveMinutesTranscript"
     static let liveMinutesSummary = "liveMinutesSummary"
+    static let liveMinutesEditHint = "liveMinutesEditHint"
+
+    /// One editor per summary section, addressed by the section's raw value.
+    static func liveMinutesEditor(_ section: LiveMinutesSection) -> String {
+        "liveMinutesEditor.\(section.rawValue)"
+    }
+
     static let liveMinutesDraftBanner = "liveMinutesDraftBanner"
     static let liveMinutesLastUpdated = "liveMinutesLastUpdated"
     static let liveMinutesUpdatingIndicator = "liveMinutesUpdatingIndicator"

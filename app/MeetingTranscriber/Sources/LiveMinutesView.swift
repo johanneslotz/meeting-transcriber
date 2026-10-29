@@ -93,10 +93,10 @@ struct LiveMinutesView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 draftBanner
-                sectionList("Topics", state.summary.topics)
-                sectionList("Decisions", state.summary.decisions)
-                sectionList("Tasks", state.summary.tasks.map(\.displayLine))
-                sectionList("Open questions", state.summary.openQuestions)
+                editHint
+                ForEach(LiveMinutesSection.allCases) { section in
+                    sectionEditor(section)
+                }
                 if state.lastUpdateFailed { failureNote }
                 if state.phase == .ended { draftActions }
             }
@@ -116,16 +116,29 @@ struct LiveMinutesView: View {
         .accessibilityIdentifier(A11yID.liveMinutesDraftBanner)
     }
 
-    private func sectionList(_ title: String, _ items: [String]) -> some View {
+    private var editHint: some View {
+        Text(
+            "You can edit the draft. Your changes are kept and sent with the next update. "
+                + "One item per line; tasks as: Task | Owner | Due.",
+        )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier(A11yID.liveMinutesEditHint)
+    }
+
+    private func sectionEditor(_ section: LiveMinutesSection) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline)
-            if items.isEmpty {
-                Text("None yet").foregroundStyle(.secondary)
-            } else {
-                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    Text("\u{2022} " + item).textSelection(.enabled)
-                }
-            }
+            Text(section.title).font(.headline)
+            TextEditor(text: Binding(
+                get: { state.text(for: section) },
+                set: { state.setText($0, for: section) },
+            ))
+            .font(.body)
+            .frame(minHeight: 64)
+            .scrollContentBackground(.hidden)
+            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 6))
+            .accessibilityIdentifier(A11yID.liveMinutesEditor(section))
         }
     }
 

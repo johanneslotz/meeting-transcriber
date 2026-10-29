@@ -108,4 +108,29 @@ final class LiveMinutesSummaryTests: XCTestCase {
         try "  \n".write(to: custom, atomically: true, encoding: .utf8)
         XCTAssertEqual(LiveMinutesPrompt.loadPrompt(from: custom), LiveMinutesPrompt.defaultPrompt)
     }
+
+    func testEditorTextRoundTripsThroughReplacing() {
+        let summary = LiveMinutesSummary(
+            topics: ["A"], decisions: ["D"],
+            tasks: [.init(task: "T", owner: "O", due: "Fri"), .init(task: "U", owner: nil, due: "Mon"), .init(task: "V", owner: nil, due: nil)],
+            openQuestions: ["Q"],
+        )
+        var rebuilt = LiveMinutesSummary.empty
+        for section in LiveMinutesSection.allCases {
+            rebuilt = rebuilt.replacing(section, withEditorText: summary.editorText(for: section))
+        }
+        XCTAssertEqual(rebuilt, summary)
+    }
+
+    func testItemsDropBulletsAndBlankLines() {
+        XCTAssertEqual(LiveMinutesSummary.items(in: "- a\n* b\n\u{2022} c\n   \n d "), ["a", "b", "c", "d"])
+    }
+
+    func testTaskLineWithoutTextIsDropped() {
+        XCTAssertNil(LiveMinutesSummary.ActionItem(editorLine: " | Anna | Fri"))
+    }
+
+    func testPromptTellsTheModelToKeepManualCorrections() {
+        XCTAssertTrue(LiveMinutesPrompt.defaultPrompt.contains("corrected the state by hand"))
+    }
 }

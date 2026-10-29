@@ -147,6 +147,7 @@ Use the `/git-workflow` skill. Commit proactively after every logical unit of wo
 - Source is `LiveCaptionsState.onFinalized`, the single subscription point for finalized utterances; there is no second ASR pass and nothing touches the recorder. It needs live transcription on (`LiveCaptionsGate.captionsAvailable`).
 - `LiveMinutesEngine` (actor) sends only the current JSON state plus the utterances since the last successful update (bounded by characters), one request at a time, and keeps the old state on a failed request or an unparseable or emptying reply. State and reply live in memory only: no file is written while a meeting runs, and the log carries counts, never content. The end-of-meeting draft is offered through Copy/Save (a save panel) and never goes near the protocol output.
 - Empty Live Minutes endpoint/model fields use the protocol provider's OpenAI-compatible settings; the protocol API key is sent only to that same endpoint. `NSWindow.sharingType` is `.none` unless "Visible in screen sharing" is on. Prompt override: `live_minutes_prompt.md`.
+- The summary is editable in the window (`LiveMinutesState.setText`, one item per line, tasks as `Task | Owner | Due`). The editor text is kept verbatim and the summary derived from it; `LiveMinutesEngine.replaceSummary` makes it the state the next update extends, and a reply to a request that started before the edit is dropped (`Outcome.supersededByEdit`).
 
 **Concurrency:**
 - `WatchLoop` is `@MainActor`. Tests for this class must also be `@MainActor`.

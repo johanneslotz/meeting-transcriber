@@ -24,6 +24,8 @@ enum LiveMinutesPrompt {
 
     Rules:
     - Start from the CURRENT STATE and change it only where the NEW UTTERANCES require it.
+      The participants may have corrected the state by hand: keep their wording and their
+      deletions unless the new utterances clearly contradict them.
     - Keep every existing item that is still valid; merge duplicates; keep items short.
     - Add a decision only if the participants clearly agreed. Add a task only if someone was
       asked or volunteered. Set owner and due only if they were stated, otherwise null.
@@ -56,7 +58,7 @@ enum LiveMinutesPrompt {
     /// The user message: the state to start from and the new utterances.
     /// `omitted` counts older pending utterances that did not fit the budget.
     static func userMessage(state: LiveMinutesSummary, utterances: [LiveMinutesUtterance], omitted: Int) -> String {
-        var parts = ["CURRENT STATE:", state.promptJSON, "", "NEW UTTERANCES:"]
+        var parts = ["CURRENT STATE (may include manual corrections, keep them):", state.promptJSON, "", "NEW UTTERANCES:"]
         if omitted > 0 {
             parts.append("[\(omitted) earlier utterances were left out to keep this request small]")
         }

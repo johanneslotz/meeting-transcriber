@@ -45,6 +45,8 @@ final class LiveMinutesCoordinator {
 
     private var session: Session?
     private var endTask: Task<Void, Never>?
+    /// Edits reach the engine in order: each one waits for the one before.
+    private var editTail: Task<Void, Never>?
 
     init(
         state: LiveMinutesState,
@@ -58,6 +60,9 @@ final class LiveMinutesCoordinator {
         self.settings = settings
         self.makeClient = makeClient
         self.now = now
+        state.onUserEdit = { [weak self] summary in
+            self?.forward(edited: summary)
+        }
     }
 
     static func makeDefaultClient(settings: AppSettings) -> (any LiveMinutesLLMClient)? {
@@ -111,6 +116,7 @@ final class LiveMinutesCoordinator {
 
     func begin() {
         retirePreviousMeeting()
+        editTail = nil
         state.begin()
         guard let client = makeClient(settings) else {
             state.apply(.failed(.request))
@@ -148,11 +154,13 @@ final class LiveMinutesCoordinator {
             session = nil
             finished.input.finish()
             await finished.consumer.value
+            await editTail?.value
+            let editsBefore = state.userEditCount
             let summary = await finished.engine.finish()
             await finished.engine.stop()
             // Cancelled by the next meeting: its state is not ours to overwrite.
             guard !Task.isCancelled else { return }
-            state.end(finalSummary: summary, at: now())
+            state.end(finalSummary: summary, at: now(), keepingEdits: state.userEditCount != editsBefore)
         }
     }
 
@@ -165,6 +173,15 @@ final class LiveMinutesCoordinator {
             session = nil
             running.input.finish()
             Task { await running.engine.stop() }
+        }
+    }
+
+    private func forward(edited summary: LiveMinutesSummary) {
+        guard let engine = session?.engine else { return }
+        let previous = editTail
+        editTail = Task {
+            await previous?.value
+            await engine.replaceSummary(summary)
         }
     }
 

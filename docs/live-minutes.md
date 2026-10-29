@@ -22,6 +22,8 @@ The protocol API key is sent only when the summary goes to the same endpoint the
 
 The left pane streams the finalized utterances with their speaker labels. **Show transcript** hides it, so the summary can be read without scrolling text; utterances keep arriving while it is hidden. The right pane shows the four sections, a banner that the content is an automatic draft, the time of the last update (`Last updated hh:mm:ss`) and an **Updating** indicator while a request runs.
 
+The draft is editable. Each section is a text box with one item per line, and tasks are written as `Task | Owner | Due` with owner and due optional. Edits take effect immediately: the edited text becomes the state the next update starts from, so the model extends what you corrected and is told to keep manual corrections and deletions unless the new utterances clearly contradict them. A request that was already running when you edited is dropped when it returns, because it was built on the old text; its utterances stay pending and go out with the next update. If you type while the final update at the end of the meeting runs, your text is kept and the final update's result is not shown. Edits also change what **Copy draft** and **Save draft...** export.
+
 When the recording ends, the engine folds in the remaining utterances with one last update, and the pane offers **Copy draft** and **Save draft...** (Markdown, through a save panel). Nothing is written unless you choose a destination, and the draft never touches the protocol output of the normal pipeline.
 
 ## How the summary is built
@@ -33,6 +35,7 @@ When the recording ends, the engine folds in the remaining utterances with one l
 - One request at a time. A trigger that finds a request running is skipped; the utterances stay pending for the next update.
 - A transport error, a reply that is not the expected JSON, or a reply that would empty a non-empty state keeps the previous summary and the pending utterances. The window notes that the last update failed.
 - Stopping cancels the running request and discards its reply.
+- The summary is editable (see above); an edit while a request runs makes that request's reply be dropped.
 - The pending queue is capped (400 utterances) and each state section is capped (40 items of 280 characters), so requests stay bounded however long the meeting runs or the endpoint is down.
 
 The prompt is `live_minutes_prompt.md` in `~/Library/Application Support/MeetingTranscriber/`, with the same mechanism as `protocol_prompt.md`: a non-empty file replaces the built-in default, and `{LANGUAGE}` is replaced by the protocol language from Settings. The reply must keep the JSON schema in the default prompt.
@@ -57,4 +60,4 @@ The draft and the protocol of the normal pipeline are independent. To compare th
 
 ## Not included yet
 
-A mode without audio files, speaker naming during the meeting, translation, and editing the summary. The coordinator takes lines from `LiveCaptionsState.onFinalized` and has no reference to the recorder, so a live-only mode can drive `begin()` and `end()` itself.
+A mode without audio files, speaker naming during the meeting, and translation. The coordinator takes lines from `LiveCaptionsState.onFinalized` and has no reference to the recorder, so a live-only mode can drive `begin()` and `end()` itself.

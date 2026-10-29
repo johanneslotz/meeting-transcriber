@@ -29,6 +29,10 @@ protocol LiveMinutesLLMClient: Sendable {
 ///
 /// Every update emits `.updating(false)` as its last event, whatever the outcome.
 ///
+/// **User edits.** `replaceSummary` makes the edited text the state the next
+/// update starts from, so the model extends what the participants corrected.
+/// A reply to a request that started before the edit is dropped.
+///
 /// **Failure keeps the old state.** A transport error or an unparseable reply
 /// leaves the summary and the pending utterances untouched, so the next update
 /// retries with everything that is still pending (bounded by
@@ -58,6 +62,10 @@ actor LiveMinutesEngine {
         case skippedTooSoon
         case failed(Failure)
         case cancelled
+        /// The user edited the summary while the request ran. The reply was
+        /// built on the old text, so it is dropped and its utterances stay
+        /// pending for the next update.
+        case supersededByEdit
     }
 
     enum Event: Equatable {
@@ -85,6 +93,7 @@ actor LiveMinutesEngine {
     private var inFlight: Task<Outcome, Never>?
     private var timer: Task<Void, Never>?
     private var triggerQueued = false
+    private var editRevision = 0
 
     init(
         client: any LiveMinutesLLMClient,
@@ -162,6 +171,14 @@ actor LiveMinutesEngine {
         Task { await self.runTriggeredUpdate() }
     }
 
+    /// Adopt the summary as the user edited it. The next update starts from
+    /// this text, and a request that is running now is discarded when it
+    /// returns (see `Outcome.supersededByEdit`).
+    func replaceSummary(_ edited: LiveMinutesSummary) {
+        summary = edited.sanitized(limits: configuration.limits)
+        editRevision += 1
+    }
+
     // MARK: - Updating
 
     /// Run one update now unless one is running, nothing is pending, or (when
@@ -193,6 +210,7 @@ actor LiveMinutesEngine {
 
     private func performUpdate() async -> Outcome {
         let startedIn = generation
+        let revisionAtStart = editRevision
         lastAttempt = now()
         let snapshot = pending
         let (batch, omitted) = Self.boundedBatch(snapshot, budget: configuration.maxContextCharacters)
@@ -216,6 +234,11 @@ actor LiveMinutesEngine {
         guard !Task.isCancelled, startedIn == generation else {
             await onEvent(.updating(false))
             return .cancelled
+        }
+
+        guard revisionAtStart == editRevision else {
+            await onEvent(.updating(false))
+            return .supersededByEdit
         }
 
         let parsed: LiveMinutesSummary

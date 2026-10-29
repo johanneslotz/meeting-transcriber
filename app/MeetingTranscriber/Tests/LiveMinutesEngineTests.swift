@@ -49,7 +49,7 @@ final class LiveMinutesEngineTests: XCTestCase {
         XCTAssertEqual(requests.count, 1)
         XCTAssertEqual(requests[0].system, "SYSTEM")
         XCTAssertTrue(requests[0].user.contains("Anna: We need a budget"))
-        XCTAssertTrue(requests[0].user.contains("CURRENT STATE:"))
+        XCTAssertTrue(requests[0].user.contains("CURRENT STATE"))
     }
 
     func testSecondUpdateSendsPreviousStateAndOnlyTheNewUtterances() async {
@@ -304,6 +304,72 @@ final class LiveMinutesEngineTests: XCTestCase {
         XCTAssertEqual(final.topics, ["From running"])
         let requests = await llm.requests
         XCTAssertEqual(requests.count, 1, "nothing was left pending, so no extra request")
+    }
+
+    // MARK: - User edits
+
+    func testEditedSummaryIsTheStateTheNextUpdateExtends() async {
+        let llm = FakeLiveMinutesLLM(replies: [
+            .success(LiveMinutesTestData.json(topics: ["Model topic"])),
+            .success(LiveMinutesTestData.json(topics: ["Edited topic", "New topic"])),
+        ])
+        let engine = makeEngine(client: llm)
+        await engine.ingest(LiveMinutesTestData.utterance("one"))
+        await engine.requestUpdate(force: true)
+
+        await engine.replaceSummary(LiveMinutesSummary(
+            topics: ["Edited topic"], decisions: ["Added by hand"], tasks: [], openQuestions: [],
+        ))
+        await engine.ingest(LiveMinutesTestData.utterance("two"))
+        await engine.requestUpdate(force: true)
+
+        let requests = await llm.requests
+        XCTAssertTrue(requests[1].user.contains("Edited topic"))
+        XCTAssertTrue(requests[1].user.contains("Added by hand"))
+        XCTAssertFalse(requests[1].user.contains("Model topic"), "the model's old text is replaced, not merged back")
+        XCTAssertTrue(requests[1].user.contains("manual corrections"))
+    }
+
+    func testReplacedSummaryIsSanitizedLikeAnyOtherState() async {
+        let engine = makeEngine(client: FakeLiveMinutesLLM())
+        await engine.replaceSummary(LiveMinutesSummary(
+            topics: [" A ", "a", ""], decisions: [], tasks: [], openQuestions: [],
+        ))
+        let topics = await engine.summary.topics
+        XCTAssertEqual(topics, ["A"])
+    }
+
+    func testClearingTheSummaryByHandIsAccepted() async {
+        let llm = FakeLiveMinutesLLM(replies: [.success(LiveMinutesTestData.json(topics: ["Kept"]))])
+        let engine = makeEngine(client: llm)
+        await engine.ingest(LiveMinutesTestData.utterance("one"))
+        await engine.requestUpdate(force: true)
+        await engine.replaceSummary(.empty)
+        let summary = await engine.summary
+        XCTAssertTrue(summary.isEmpty)
+    }
+
+    func testEditWhileARequestRunsDropsItsReplyAndKeepsTheEdit() async {
+        let gate = AsyncGate()
+        let llm = FakeLiveMinutesLLM(replies: [.success(LiveMinutesTestData.json(topics: ["Model topic"]))], gate: gate)
+        let events = EventLog()
+        let engine = makeEngine(client: llm, events: events)
+        await engine.ingest(LiveMinutesTestData.utterance("one"))
+
+        let running = Task { await engine.requestUpdate(force: true) }
+        await llm.waitForRequests(1)
+        await engine.replaceSummary(LiveMinutesSummary(topics: ["Typed by user"], decisions: [], tasks: [], openQuestions: []))
+        await gate.open()
+
+        let outcome = await running.value
+        XCTAssertEqual(outcome, .supersededByEdit)
+        let topics = await engine.summary.topics
+        XCTAssertEqual(topics, ["Typed by user"])
+        let pending = await engine.pending
+        XCTAssertEqual(pending.count, 1, "the utterance is retried on top of the edited text")
+        let logged = await events.events
+        XCTAssertEqual(logged.last, .updating(false))
+        XCTAssertFalse(logged.contains { if case .summary = $0 { true } else { false } })
     }
 
     // MARK: - Bounded context

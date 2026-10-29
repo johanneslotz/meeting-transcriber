@@ -197,6 +197,7 @@ State writes to `AppPaths.dataDir`; IPC + queue snapshots to `ipcDir`.
 | `LiveCaptionsGate.swift` | Pure decision logic for live captions routing: master toggle + explicit engine language (`en` → English EOU streaming, other → Nemotron streaming, auto-detect → re-transcribe or none) — shared by `AppState`, coordinator, and controller. Overlay visibility is a separate UI AND (`overlayVisible`); it is not a strategy input |
 | `LiveMinutesEngine.swift` | Actor behind Live Minutes: running JSON summary, timer/count-triggered updates with a bounded context, one request at a time, cancellation, parse-failure fallback; talks to an injected `LiveMinutesLLMClient` |
 | `LiveMinutesSummary.swift` | Summary value type (topics, decisions, tasks, open questions), tolerant JSON parsing, sanitizing caps, Markdown rendering |
+| `LiveMinutesSummary+Editing.swift` | Line-based text form of the summary for in-window editing (`Task \| Owner \| Due`) and its forgiving parser |
 | `LiveMinutesPrompt.swift` | Built-in live minutes prompt, `live_minutes_prompt.md` override, user-message construction |
 | `LiveMinutesCoordinator.swift` | Subscribes to `LiveCaptionsState.onFinalized`, owns one engine per meeting, feeds `LiveMinutesState`, produces the final draft |
 | `LiveMinutesState.swift` | Memory-only `@Observable` state of the Live Minutes window |

@@ -143,4 +143,27 @@ final class LiveMinutesCoordinatorTests: XCTestCase {
         let requests = await llm.requests
         XCTAssertEqual(requests.count, 1, "the tail utterance is part of the final update")
     }
+
+    func testEditBeforeTheNextUpdateIsWhatTheModelExtends() async throws {
+        let captions = LiveCaptionsState()
+        let llm = FakeLiveMinutesLLM()
+        let coordinator = try makeCoordinator(settings: makeSettings(), llm: llm, captions: captions)
+        coordinator.recordingChanged(isRecording: true)
+        coordinator.state.setText("Typed topic", for: .topics)
+        captions.applyFinalized("closing remarks", channel: .mic)
+
+        coordinator.recordingChanged(isRecording: false)
+        await waitUntilEnded(coordinator.state)
+
+        let requests = await llm.requests
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertTrue(requests[0].user.contains("Typed topic"), "the edit reached the engine before the final update")
+    }
+
+    func testEditsAreIgnoredWithoutARunningMeeting() throws {
+        let coordinator = try makeCoordinator(settings: makeSettings(), llm: FakeLiveMinutesLLM(), captions: LiveCaptionsState())
+        coordinator.state.setText("No meeting", for: .topics)
+        XCTAssertFalse(coordinator.isRunning)
+        XCTAssertEqual(coordinator.state.summary.topics, ["No meeting"], "the state still holds what was typed")
+    }
 }

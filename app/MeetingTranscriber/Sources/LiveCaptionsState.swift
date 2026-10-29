@@ -54,6 +54,11 @@ final class LiveCaptionsState {
         self.appLabel = appLabel
     }
 
+    /// Called for every finalized line, after it is stored. The single
+    /// subscription point for consumers of finalized utterances (Live
+    /// Minutes); `clear()` leaves it alone.
+    @ObservationIgnored var onFinalized: (@MainActor (LiveCaptionLine) -> Void)?
+
     private(set) var hypothesisMic: String = ""
     private(set) var hypothesisApp: String = ""
 
@@ -116,12 +121,14 @@ final class LiveCaptionsState {
         case .mic: hypothesisMic = ""
         case .app: hypothesisApp = ""
         }
-        recentFinals.append(LiveCaptionLine(channel: channel, text: text, speaker: speaker))
+        let line = LiveCaptionLine(channel: channel, text: text, speaker: speaker)
+        recentFinals.append(line)
         if recentFinals.count > Self.maxFinalsKept {
             recentFinals.removeFirst(recentFinals.count - Self.maxFinalsKept)
         }
         lastEventAt = Date()
         scheduleAutoClear()
+        onFinalized?(line)
     }
 
     /// Convenience: speaker defaults to the channel label. Used by tests

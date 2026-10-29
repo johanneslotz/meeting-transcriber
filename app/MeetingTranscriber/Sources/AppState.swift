@@ -168,6 +168,10 @@ final class AppState {
     /// installation to it.
     let liveTranscription: LiveTranscriptionCoordinator
 
+    /// Live Minutes (rolling summary window) for the current meeting. Fed by
+    /// `liveCaptions.onFinalized`; the app scene drives it from the recording flag.
+    let liveMinutes: LiveMinutesCoordinator
+
     #if !APPSTORE
         /// Debug RPC server lifecycle (launch gate, settings-driven start/stop,
         /// token rotation), extracted into its own controller. `AppState` supplies
@@ -251,6 +255,9 @@ final class AppState {
             verboseDiagnostics: { [settings] in settings.verboseDiagnostics },
             warmupQueue: warmupQueue,
         )
+        let minutes = LiveMinutesCoordinator(state: LiveMinutesState(), settings: settings)
+        minutes.attach(to: liveCaptions)
+        self.liveMinutes = minutes
         self.watching = WatchingController(
             settings: settings,
             notifier: notifier,

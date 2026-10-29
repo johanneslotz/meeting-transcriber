@@ -23,6 +23,8 @@ struct MenuBarView: View {
     let onOpenProtocolsFolder: () -> Void
     let onOpenSettings: () -> Void
     let onNameSpeakers: (() -> Void)?
+    /// Opens the Live Minutes window; nil hides the item (feature off).
+    var onOpenLiveMinutes: (() -> Void)?
     let onProcessFiles: () -> Void
     let onDismissJob: (UUID) -> Void
     let onQuit: () -> Void
@@ -164,6 +166,15 @@ struct MenuBarView: View {
                 Label("Name Speakers...", systemImage: "person.2.fill")
             }
             .keyboardShortcut("n")
+        }
+
+        if let onOpenLiveMinutes {
+            Button {
+                onOpenLiveMinutes()
+            } label: {
+                Label("Live Minutes...", systemImage: "text.badge.checkmark")
+            }
+            .keyboardShortcut("l")
         }
 
         Button {

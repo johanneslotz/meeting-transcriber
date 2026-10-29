@@ -83,6 +83,7 @@ struct MeetingTranscriberApp: App {
     private var appDelegate // swiftlint:disable:this unused_declaration
     @State private var appState: AppState
     @State private var captionsWindow: LiveCaptionsWindowController?
+    @State private var minutesWindow: LiveMinutesWindowController?
     // Keeps the progress updater alive for the app's lifetime; it is seeded in
     // `init` and observes menu tracking on its own, so nothing reads it back and
     // the analyzer cannot see that use.
@@ -184,6 +185,9 @@ struct MeetingTranscriberApp: App {
             onNameSpeakers: appState.hasPendingSpeakerNamingJobs ? {
                 bringWindowToFront(id: "speaker-naming")
             } : nil,
+            onOpenLiveMinutes: appState.settings.liveMinutesEnabled ? {
+                liveMinutesController.show(activating: true)
+            } : nil,
             onProcessFiles: processAudioFiles,
             onDismissJob: { id in appState.pipelineQueue.removeJob(id: id) },
             onQuit: quit,
@@ -247,11 +251,35 @@ struct MeetingTranscriberApp: App {
                 controller.hide()
             }
         }
+        .onChange(of: appState.watching.isRecording) { _, recording in
+            appState.liveMinutes.recordingChanged(isRecording: recording)
+            guard recording, appState.liveMinutes.isRunning else { return }
+            let controller = liveMinutesController
+            if LiveMinutesGate.shouldAutoOpen(active: true, autoOpen: appState.settings.liveMinutesAutoOpen) {
+                controller.show(activating: false)
+            }
+        }
+        .onChange(of: appState.settings.liveMinutesVisibleInScreenSharing) { _, visible in
+            minutesWindow?.apply(sharingType: LiveMinutesGate.sharingType(visibleInScreenSharing: visible))
+        }
         // Not `initial: true`: the controller is created with the current
         // preset above, and a hidden bar picks the preset up on `show()`.
         .onChange(of: appState.settings.liveCaptionsSize) { _, size in
             captionsWindow?.apply(size: size)
         }
+    }
+
+    /// Created on first use, with the sharing visibility the user chose.
+    private var liveMinutesController: LiveMinutesWindowController {
+        if let minutesWindow { return minutesWindow }
+        let controller = LiveMinutesWindowController(
+            state: appState.liveMinutes.state,
+            sharingType: LiveMinutesGate.sharingType(
+                visibleInScreenSharing: appState.settings.liveMinutesVisibleInScreenSharing,
+            ),
+        )
+        minutesWindow = controller
+        return controller
     }
 
     // MARK: - Windows

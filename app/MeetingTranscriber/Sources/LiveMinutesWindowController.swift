@@ -67,6 +67,7 @@ final class LiveMinutesWindowController {
             defer: false,
         )
         window.title = "Live Minutes"
+        window.titlebarAppearsTransparent = true
         window.identifier = Self.windowIdentifier
         window.isReleasedWhenClosed = false
         window.sharingType = sharingType

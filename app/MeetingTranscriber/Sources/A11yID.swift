@@ -155,6 +155,7 @@ enum A11yID {
     static let liveMinutesLastUpdated = "liveMinutesLastUpdated"
     static let liveMinutesUpdatingIndicator = "liveMinutesUpdatingIndicator"
     static let liveMinutesFailureNote = "liveMinutesFailureNote"
+    static let liveMinutesUpdateButton = "liveMinutesUpdateButton"
     static let liveMinutesCopyDraft = "liveMinutesCopyDraft"
     static let liveMinutesSaveDraft = "liveMinutesSaveDraft"
 }

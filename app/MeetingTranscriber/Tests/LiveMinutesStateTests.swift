@@ -193,4 +193,28 @@ final class LiveMinutesStateTests: XCTestCase {
         state.setText("Edited topic", for: .topics)
         XCTAssertTrue(state.draftMarkdown?.contains("- Edited topic") == true)
     }
+
+    func testUpdateRequestIsOnlyPossibleWhileRecordingAndIdle() {
+        let state = LiveMinutesState()
+        var requests = 0
+        state.onUpdateRequest = { requests += 1 }
+
+        XCTAssertFalse(state.canRequestUpdate, "idle: no meeting to update")
+        state.requestUpdate()
+
+        state.begin()
+        XCTAssertTrue(state.canRequestUpdate)
+        state.requestUpdate()
+
+        state.apply(.updating(true))
+        XCTAssertFalse(state.canRequestUpdate, "an update is already running")
+        state.requestUpdate()
+        state.apply(.updating(false))
+
+        state.end(finalSummary: .empty, at: Date())
+        XCTAssertFalse(state.canRequestUpdate, "ended: the final update has run")
+        state.requestUpdate()
+
+        XCTAssertEqual(requests, 1)
+    }
 }

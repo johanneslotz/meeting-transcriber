@@ -63,6 +63,20 @@ final class LiveMinutesCoordinator {
         state.onUserEdit = { [weak self] summary in
             self?.forward(edited: summary)
         }
+        state.onUpdateRequest = { [weak self] in
+            self?.updateNow()
+        }
+    }
+
+    /// Run an update right away. The engine skips it when one is already
+    /// running or nothing new is pending, so a double press is harmless.
+    func updateNow() {
+        guard let engine = session?.engine else { return }
+        let previous = editTail
+        Task {
+            await previous?.value
+            await engine.requestUpdate(force: true)
+        }
     }
 
     static func makeDefaultClient(settings: AppSettings) -> (any LiveMinutesLLMClient)? {

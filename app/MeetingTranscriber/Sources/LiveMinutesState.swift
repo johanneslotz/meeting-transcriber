@@ -45,6 +45,21 @@ final class LiveMinutesState {
     /// Set by the coordinator to hand the edit to the engine.
     @ObservationIgnored var onUserEdit: (@MainActor (LiveMinutesSummary) -> Void)?
 
+    /// Called when the user asks for an update now. Set by the coordinator.
+    @ObservationIgnored var onUpdateRequest: (@MainActor () -> Void)?
+
+    /// An update can be asked for while a meeting is recorded and none is running.
+    var canRequestUpdate: Bool {
+        phase == .recording && !isUpdating
+    }
+
+    /// The user pressed "Update": fold the pending utterances in now instead of
+    /// waiting for the timer.
+    func requestUpdate() {
+        guard canRequestUpdate else { return }
+        onUpdateRequest?()
+    }
+
     /// Hides the live transcript pane so the summary can be read without the
     /// scrolling text. Display only: utterances keep arriving while hidden.
     var transcriptVisible = true

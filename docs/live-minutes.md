@@ -38,7 +38,7 @@ When the recording ends, the engine folds in the remaining utterances with one l
 - The summary is editable (see above); an edit while a request runs makes that request's reply be dropped.
 - The pending queue is capped (400 utterances) and each state section is capped (40 items of 280 characters), so requests stay bounded however long the meeting runs or the endpoint is down.
 
-The prompt is `live_minutes_prompt.md` in `~/Library/Application Support/MeetingTranscriber/`, with the same mechanism as `protocol_prompt.md`: a non-empty file replaces the built-in default, and `{LANGUAGE}` is replaced by the protocol language from Settings. The reply must keep the JSON schema in the default prompt.
+The prompt is `live_minutes_prompt.md` in `~/Library/Application Support/MeetingTranscriber/`, with the same mechanism as `protocol_prompt.md`: a non-empty file replaces the built-in default, and `{LANGUAGE}` is replaced by the protocol language from Settings. The reply must keep the JSON schema in the default prompt. Settings, Transcribe, Live Minutes has **Edit Prompt** (creates the file from the built-in prompt and opens it), **Import Prompt** and **Reset to Default** (deletes the file).
 
 ## Privacy
 

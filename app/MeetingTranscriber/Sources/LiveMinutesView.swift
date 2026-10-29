@@ -102,7 +102,7 @@ struct LiveMinutesView: View {
                 proxy.scrollTo(last, anchor: .bottom)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Color(nsColor: .textBackgroundColor))
         .accessibilityIdentifier(A11yID.liveMinutesTranscript)
     }
 
